@@ -791,21 +791,44 @@ void GazeboMavlinkInterface::SendGroundTruth()
 void GazeboMavlinkInterface::GpsCallback(GpsPtr& gps_msg, const int& id) {
   SensorData::Gps gps_data;
   gps_data.time_utc_usec = gps_msg->time_utc_usec();
-  gps_data.fix_type = 3;
-  gps_data.latitude_deg = gps_msg->latitude_deg() * 1e7;
-  gps_data.longitude_deg = gps_msg->longitude_deg() * 1e7;
-  gps_data.altitude = gps_msg->altitude() * 1000.0;
-  gps_data.eph = gps_msg->eph() * 100.0;
-  gps_data.epv = gps_msg->epv() * 100.0;
-  gps_data.velocity = gps_msg->velocity() * 100.0;
-  gps_data.velocity_north = gps_msg->velocity_north() * 100.0;
-  gps_data.velocity_east = gps_msg->velocity_east() * 100.0;
-  gps_data.velocity_down = -gps_msg->velocity_up() * 100.0;
-  // MAVLINK_HIL_GPS_T CoG is [0, 360]. math::Angle::Normalize() is [-pi, pi].
-  ignition::math::Angle cog(atan2(gps_msg->velocity_east(), gps_msg->velocity_north()));
-  cog.Normalize();
-  gps_data.cog = static_cast<uint16_t>(GetDegrees360(cog) * 100.0);
-  gps_data.satellites_visible = 10;
+
+  if(id==0)
+  {
+      gps_data.fix_type = 3;
+      gps_data.latitude_deg = gps_msg->latitude_deg() * 1e7;
+      gps_data.longitude_deg = gps_msg->longitude_deg() * 1e7;
+      gps_data.altitude = gps_msg->altitude() * 1000.0;
+      gps_data.eph = gps_msg->eph() * 100.0;
+      gps_data.epv = gps_msg->epv() * 100.0;
+      gps_data.velocity = gps_msg->velocity() * 100.0;
+      gps_data.velocity_north = gps_msg->velocity_north() * 100.0;
+      gps_data.velocity_east = gps_msg->velocity_east() * 100.0;
+      gps_data.velocity_down = -gps_msg->velocity_up() * 100.0;
+      // MAVLINK_HIL_GPS_T CoG is [0, 360]. math::Angle::Normalize() is [-pi, pi].
+      ignition::math::Angle cog(atan2(gps_msg->velocity_east(), gps_msg->velocity_north()));
+      cog.Normalize();
+      gps_data.cog = static_cast<uint16_t>(GetDegrees360(cog) * 100.0);
+      gps_data.satellites_visible = 10;
+  }
+  else if(id == 1)//@note Obox simulation
+  {
+      gps_data.fix_type = 4;
+      gps_data.latitude_deg = (gps_msg->latitude_deg() + 0.005) * 1e7;
+      gps_data.longitude_deg = gps_msg->longitude_deg() * 1e7;
+      gps_data.altitude = (gps_msg->altitude() + 10) * 1000.0;
+      gps_data.eph = 1.03 * 100.0;
+      gps_data.epv = 1.00 * 100.0;
+      gps_data.velocity = gps_msg->velocity() * 100.0;
+      gps_data.velocity_north = gps_msg->velocity_north() * 100.0;
+      gps_data.velocity_east = gps_msg->velocity_east() * 100.0;
+      gps_data.velocity_down = -gps_msg->velocity_up() * 100.0;
+      // MAVLINK_HIL_GPS_T CoG is [0, 360]. math::Angle::Normalize() is [-pi, pi].
+      ignition::math::Angle cog(atan2(gps_msg->velocity_east(), gps_msg->velocity_north()));
+      cog.Normalize();
+      gps_data.cog = 0;//static_cast<uint16_t>(GetDegrees360(cog) * 100.0);
+      gps_data.satellites_visible = 32;
+  }
+
   gps_data.id = id;
 
   mavlink_interface_->SendGpsMessages(gps_data);
