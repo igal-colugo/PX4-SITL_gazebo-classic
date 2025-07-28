@@ -66,8 +66,14 @@ void BarometerPlugin::getSdfParams(sdf::ElementPtr sdf)
   if (env_alt) {
     alt_home_ = std::stod(env_alt);
     gzmsg << "[gazebo_barometer_plugin] Home altitude is set to " << alt_home_ << " m AMSL.\n";
-  } else {
-    alt_home_ = DEFAULT_HOME_ALT_AMSL;
+  }
+  else if (sdf->HasElement("homeAltitude"))
+  {
+      alt_home_ = sdf->GetElement("homeAltitude")->Get<double>();
+  }
+  else
+  {
+      alt_home_ = DEFAULT_HOME_ALT_AMSL;
   }
 
   namespace_.clear();
